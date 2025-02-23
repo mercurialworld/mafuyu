@@ -6,10 +6,26 @@ use log::info;
 use poise::{
     self,
     serenity_prelude::{
-        CreateActionRow, CreateButton, CreateEmbed, CreateSelectMenu, CreateSelectMenuKind, CreateSelectMenuOption
+        Colour, CreateActionRow, CreateButton, CreateEmbed, CreateSelectMenu, CreateSelectMenuKind,
+        CreateSelectMenuOption,
     },
     CreateReply,
 };
+
+/// Adds a colour to the map embed.
+fn get_embed_color(map: &BSMap) -> Colour {
+    if map.ss_ranked || map.bl_ranked {
+        return Colour::from_rgb(243, 156, 18);
+    }
+    if map.curated_at.is_some() {
+        return Colour::from_rgb(0, 188, 140);
+    }
+    if map.uploader.verified_mapper {
+        return Colour::from_rgb(118, 70, 175);
+    } else {
+        return Colour::from_rgb(68, 68, 68);
+    }
+}
 
 /// Creates the general map info embed.
 fn create_map_info_embed(map: &BSMap, code: String) -> CreateEmbed {
@@ -44,7 +60,8 @@ fn create_map_info_embed(map: &BSMap, code: String) -> CreateEmbed {
             ),
         ])
         .thumbnail(&map.versions[0].cover_url)
-        .timestamp(map.uploaded);
+        .timestamp(map.uploaded)
+        .colour(get_embed_color(&map));
 
     embed
 }
@@ -75,32 +92,28 @@ pub async fn bsr(
 ) -> Result<(), Error> {
     info!("/bsr used with code {}", &code);
     let embed: CreateEmbed;
-    let diffs: Vec<CreateSelectMenuOption>;
+    let diff_options: Vec<CreateSelectMenuOption>;
     let builder: CreateReply;
 
     match get_map_data(&code).await {
         Ok(map) => {
             embed = create_map_info_embed(&map, code);
-            diffs = get_map_diffs(&map);
+            diff_options = get_map_diffs(&map);
 
-            builder =
-                CreateReply::default()
-                    .embed(embed)
-                    .components(vec![
-                        CreateActionRow::SelectMenu(
-                            CreateSelectMenu::new(
-                                "diffsel",
-                                CreateSelectMenuKind::String { options: diffs },
-                            )
-                            .placeholder("Select Difficulty"),
-                        ),
-                        CreateActionRow::Buttons(vec![
-                            CreateButton::new_link(&map.versions[0].download_url)
-                                .label("Download map")
-                                .emoji('⬇')
-                            ]
-                        )
-                    ]);
+            builder = CreateReply::default().embed(embed).components(vec![
+                CreateActionRow::SelectMenu(
+                    CreateSelectMenu::new(
+                        "diffsel",
+                        CreateSelectMenuKind::String { options: diff_options },
+                    )
+                    .placeholder("Select Difficulty"),
+                ),
+                CreateActionRow::Buttons(vec![CreateButton::new_link(
+                    &map.versions[0].download_url,
+                )
+                .label("Download map")
+                .emoji('⬇')]),
+            ]);
         }
         Err(err) => {
             embed = CreateEmbed::new()

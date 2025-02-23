@@ -45,6 +45,7 @@ pub struct UserDetail {
     pub name: String,
     pub id: i32,
     pub avatar: String, // avatar URL
+    pub verified_mapper: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -67,4 +68,8 @@ pub struct BSMap {
     pub uploader: UserDetail,
     pub collaborators: Option<Vec<UserDetail>>,
     pub stats: MapStats,
+    pub bl_ranked: bool,
+    #[serde(rename = "ranked")] 
+    pub ss_ranked: bool,
+    pub curated_at: Option<DateTime<Utc>>
 }
