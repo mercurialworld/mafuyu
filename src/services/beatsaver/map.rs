@@ -27,6 +27,7 @@ pub struct MapVersion {
 pub struct MapDetail {
     pub njs: f64,
     pub nps: f64,
+    pub notes: i32, 
     pub bombs: i32,
     pub obstacles: i32,
     pub bl_stars: Option<f64>,

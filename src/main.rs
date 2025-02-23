@@ -12,7 +12,7 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 #[tokio::main]
 async fn main() {
     colog::init();
-    dotenv();
+    let _ = dotenv();
 
     let token = dotenvy::var("DISCORD_TOKEN").expect("Missing Discord token");
     let intents = serenity::GatewayIntents::non_privileged();
