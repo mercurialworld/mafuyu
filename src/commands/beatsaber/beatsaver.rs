@@ -43,8 +43,8 @@ fn create_map_info_embed(map: &BSMap, code: String) -> CreateEmbed {
                 "Length",
                 &format!(
                     "{}:{:0>2}",
-                    map.metadata.duration % 60,
-                    (map.metadata.duration / 60) % 60
+                    (map.metadata.duration / 60) % 60,
+                    map.metadata.duration % 60
                 ),
                 true,
             ),
