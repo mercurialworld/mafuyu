@@ -1,3 +1,4 @@
+use dotenvy::dotenv;
 use poise::serenity_prelude as serenity;
 use log::info;
 
@@ -11,8 +12,9 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 #[tokio::main]
 async fn main() {
     colog::init();
+    dotenv();
 
-    let token = "insert token here";
+    let token = dotenvy::var("DISCORD_TOKEN").expect("Missing Discord token");
     let intents = serenity::GatewayIntents::non_privileged();
 
     let framework = poise::Framework::builder()
