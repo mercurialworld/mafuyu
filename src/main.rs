@@ -3,11 +3,10 @@ use poise::{
     serenity_prelude::{self as serenity, CreateEmbed},
     CreateReply,
 };
-use tracing::{info, warn};
-use tracing_subscriber::FmtSubscriber;
 
 mod commands;
 mod services;
+use log::{info, warn};
 
 struct Data {} // User data, which is stored and accessible in all command invocations
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -15,10 +14,8 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
 async fn main() {
-    let subscriber = FmtSubscriber::builder().finish();
-    tracing::subscriber::set_global_default(subscriber).expect("Unable to start the logger");
-
-    let _ = dotenv();
+    dotenv().ok();
+    env_logger::init();
 
     let token = dotenvy::var("DISCORD_TOKEN").expect("Missing Discord token");
     let intents = serenity::GatewayIntents::non_privileged();
@@ -51,14 +48,18 @@ async fn main() {
             },
             on_error: |error| {
                 Box::pin(async move {
-                    if let poise::FrameworkError::Command { error, ctx, .. } = error {
-                        warn!("{:?}", error);
-                        let embed = CreateEmbed::new()
-                            .title("Error!")
-                            .description(error.to_string());
+                    warn!("{:?}", error.to_string());
 
-                        let builder = CreateReply::default().embed(embed);
-                        let _ = ctx.send(builder).await;
+                    match error {
+                        poise::FrameworkError::Command { error, ctx, .. } => {
+                            let embed = CreateEmbed::new()
+                                .title("Error!")
+                                .description(error.to_string());
+
+                            let builder = CreateReply::default().embed(embed);
+                            let _ = ctx.send(builder).await;
+                        }
+                        other => poise::builtins::on_error(other).await.unwrap(),
                     }
                 })
             },

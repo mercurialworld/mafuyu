@@ -1,18 +1,24 @@
+use std::collections::HashMap;
+
 use crate::{
-    services::beatsaver::{api::get_map_data, map::BSMap},
+    services::beatsaver::{
+        api::get_map_data,
+        map::{BSMap, MapDetail},
+    },
     Context, Error,
 };
+use log::info;
 use poise::{
     self,
     serenity_prelude::{
-        Colour, CreateActionRow, CreateButton, CreateEmbed, CreateSelectMenu, CreateSelectMenuKind,
-        CreateSelectMenuOption,
+        self as serenity, Colour, CreateActionRow, CreateButton, CreateEmbed, CreateSelectMenu,
+        CreateSelectMenuKind, CreateSelectMenuOption,
     },
     CreateReply,
 };
 
 /// Adds a colour to the map embed.
-fn get_embed_color(map: &BSMap) -> Colour {
+fn get_embed_colour(map: &BSMap) -> Colour {
     if map.ss_ranked || map.bl_ranked {
         Colour::from_rgb(243, 156, 18)
     } else if map.curated_at.is_some() {
@@ -24,12 +30,31 @@ fn get_embed_color(map: &BSMap) -> Colour {
     }
 }
 
+/// Adds a difficulty colour to the map embed.
+fn get_diff_colour(diff_name: &str) -> Colour {
+    match diff_name {
+        "ExpertPlus" => Colour::from_rgb(166, 149, 255),
+        "Expert" => Colour::from_rgb(255, 149, 166),
+        "Hard" => Colour::from_rgb(255, 183, 77),
+        "Normal" => Colour::from_rgb(0, 238, 255),
+        "Easy" => Colour::from_rgb(129, 199, 132),
+        _ => unreachable!(),
+    }
+}
+
 /// Creates the general map info embed.
 fn create_map_info_embed(map: &BSMap, code: String) -> CreateEmbed {
     let embed: CreateEmbed = CreateEmbed::new()
         .title(&map.name)
         .url(format!("https://beatsaver.com/maps/{}", code))
-        .description(&map.description)
+        .description(&map.description);
+
+    embed
+}
+
+/// Creates the metadata part of the embed.
+fn create_map_metadata_embed(map: &BSMap, embed: CreateEmbed) -> CreateEmbed {
+    embed
         .field("Mapper(s)", &map.metadata.level_author_name, false)
         .field("Artist(s)", &map.metadata.song_author_name, false)
         .fields([
@@ -56,9 +81,7 @@ fn create_map_info_embed(map: &BSMap, code: String) -> CreateEmbed {
         ])
         .thumbnail(&map.versions[0].cover_url)
         .timestamp(map.uploaded)
-        .colour(get_embed_color(map));
-
-    embed
+        .colour(get_embed_colour(map))
 }
 
 /// Creates the options menu for the available difficulties.
@@ -73,7 +96,43 @@ fn get_map_diffs(map: &BSMap) -> Vec<CreateSelectMenuOption> {
         )
     }));
 
+    info!("{:?}", map_diffs);
+
     map_diffs
+}
+
+/// Creates the embed representing data for one difficulty.
+fn create_map_diff_embed(diff: &MapDetail, embed: CreateEmbed) -> CreateEmbed {
+    embed
+        .field(
+            "Characteristic/Difficulty",
+            format!("{} {}", diff.characteristic, diff.difficulty),
+            false,
+        )
+        .fields(vec![
+            ("Notes", diff.notes.to_string(), true),
+            ("Bombs", diff.bombs.to_string(), true),
+            ("Walls", diff.obstacles.to_string(), true),
+            ("NJS", diff.njs.to_string(), true),
+            ("NPS", diff.nps.to_string(), true),
+            ("Lights", diff.events.to_string(), true),
+        ])
+        .colour(get_diff_colour(&diff.difficulty))
+}
+
+/// Creates a vector of embeds representing difficulty data.
+fn create_map_diff_embeds(map: &BSMap, embed: CreateEmbed) -> HashMap<String, CreateEmbed> {
+    let mut diffs = HashMap::new();
+    for diff in map.versions[0].diffs.iter() {
+        let diff_embed = embed.clone();
+
+        diffs.insert(
+            format!("{}{}", diff.characteristic, diff.difficulty),
+            create_map_diff_embed(diff, diff_embed),
+        );
+    }
+
+    diffs
 }
 
 /// Searches a Beat Saber custom map from BeatSaver.   
@@ -82,30 +141,63 @@ pub async fn bsr(
     ctx: Context<'_>,
     #[description = "The beatmap code (up to 5 alphanumeric characters)"] code: String,
 ) -> Result<(), Error> {
-    match get_map_data(&code).await {
-        Ok(map) => {
-            let embed: CreateEmbed = create_map_info_embed(&map, code);
-            let diff_options: Vec<CreateSelectMenuOption> = get_map_diffs(&map);
+    let bsr_msg_id = ctx.id();
+    let map: BSMap = get_map_data(&code).await?;
+    let embed_base: CreateEmbed = create_map_info_embed(&map, code);
 
-            let builder: CreateReply = CreateReply::default().embed(embed).components(vec![
-                CreateActionRow::SelectMenu(
-                    CreateSelectMenu::new(
-                        "diffsel",
-                        CreateSelectMenuKind::String {
-                            options: diff_options,
-                        },
-                    )
-                    .placeholder("Select Difficulty"),
-                ),
-                CreateActionRow::Buttons(vec![CreateButton::new_link(
-                    &map.versions[0].download_url,
-                )
-                .label("Download map")
-                .emoji('⬇')]),
-            ]);
-            ctx.send(builder).await?;
-            Ok(())
-        }
-        Err(err) => Err(err),
+    let metadata_embed: CreateEmbed = create_map_metadata_embed(&map, embed_base.clone());
+    let embed_components = vec![
+        CreateActionRow::SelectMenu(
+            CreateSelectMenu::new(
+                "diffsel",
+                CreateSelectMenuKind::String {
+                    options: get_map_diffs(&map),
+                },
+            )
+            .placeholder("Select Difficulty"),
+        ),
+        CreateActionRow::Buttons(vec![CreateButton::new_link(&map.versions[0].download_url)
+            .label("Download map")
+            .emoji('⬇')]),
+    ];
+    let mut diff_embeds: HashMap<String, CreateEmbed> =
+        create_map_diff_embeds(&map, embed_base.clone());
+
+    diff_embeds.insert("Metadata".to_string(), metadata_embed.clone());
+
+    info!("{:?}", diff_embeds);
+
+    let builder: CreateReply = CreateReply::default()
+        .embed(metadata_embed)
+        .components(embed_components);
+
+    // general metadata message
+    ctx.send(builder).await?;
+
+    // here's the collector for diffs and stuff
+    while let Some(mci) = serenity::ComponentInteractionCollector::new(ctx)
+        .author_id(ctx.author().id)
+        .channel_id(ctx.channel_id())
+        .timeout(std::time::Duration::from_secs(899))
+        .filter(move |mci| mci.data.custom_id == bsr_msg_id.to_string())
+        .await
+    {
+        info!("interaction happened");
+
+        let mut msg = mci.message.clone();
+        let diff_key = match &mci.data.kind {
+            serenity::ComponentInteractionDataKind::StringSelect { values } => &values[0],
+            _ => panic!("unexpected interaction data kind"),
+        };
+
+        let diff_builder =
+            serenity::EditMessage::new().embed(diff_embeds.get(diff_key).unwrap().clone());
+
+        msg.edit(ctx, diff_builder).await?;
+
+        mci.create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
+            .await?;
     }
+
+    Ok(())
 }
