@@ -1,6 +1,10 @@
 use dotenvy::dotenv;
-use poise::serenity_prelude as serenity;
-use log::info;
+use poise::{
+    serenity_prelude::{self as serenity, CreateEmbed},
+    CreateReply,
+};
+use tracing::{info, warn};
+use tracing_subscriber::FmtSubscriber;
 
 mod commands;
 mod services;
@@ -11,7 +15,9 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
 async fn main() {
-    colog::init();
+    let subscriber = FmtSubscriber::builder().finish();
+    tracing::subscriber::set_global_default(subscriber).expect("Unable to start the logger");
+
     let _ = dotenv();
 
     let token = dotenvy::var("DISCORD_TOKEN").expect("Missing Discord token");
@@ -21,8 +27,41 @@ async fn main() {
         .options(poise::FrameworkOptions {
             commands: vec![
                 commands::misc::sync::sync(),
-                commands::beatsaber::beatsaver::bsr()
+                commands::beatsaber::beatsaver::bsr(),
             ],
+            pre_command: |ctx| {
+                Box::pin(async move {
+                    let author = ctx.author();
+
+                    match ctx {
+                        poise::Context::Application(app_ctx) => info!(
+                            "{} used app command {} with options {:?}",
+                            &author.name,
+                            &app_ctx.interaction.data.name,
+                            &app_ctx.interaction.data.options
+                        ),
+                        poise::Context::Prefix(pfx_ctx) => {
+                            info!(
+                                "{} used prefix command {}",
+                                &author.name, &pfx_ctx.msg.content
+                            )
+                        }
+                    }
+                })
+            },
+            on_error: |error| {
+                Box::pin(async move {
+                    if let poise::FrameworkError::Command { error, ctx, .. } = error {
+                        warn!("{:?}", error);
+                        let embed = CreateEmbed::new()
+                            .title("Error!")
+                            .description(error.to_string());
+
+                        let builder = CreateReply::default().embed(embed);
+                        let _ = ctx.send(builder).await;
+                    }
+                })
+            },
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
