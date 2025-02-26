@@ -49,7 +49,8 @@ fn create_map_info_embed(map: &BSMap, code: &String) -> CreateEmbed {
         .title(&map.name)
         .url(format!("https://beatsaver.com/maps/{}", code))
         .description(&map.description)
-        .thumbnail(&map.versions[0].cover_url);
+        .thumbnail(&map.versions[0].cover_url)
+        .timestamp(map.uploaded);
 
     embed
 }
@@ -81,7 +82,6 @@ fn create_map_metadata_embed(map: &BSMap, embed: CreateEmbed) -> CreateEmbed {
                 true,
             ),
         ])
-        .timestamp(map.uploaded)
         .colour(get_embed_colour(map))
 }
 
