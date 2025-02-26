@@ -11,7 +11,8 @@ use log::info;
 use poise::{
     self,
     serenity_prelude::{
-        self as serenity, Colour, CreateActionRow, CreateButton, CreateEmbed, CreateSelectMenu,
+        self as serenity, Colour, CreateActionRow, CreateButton, CreateEmbed,
+        CreateInteractionResponse, CreateInteractionResponseMessage, CreateSelectMenu,
         CreateSelectMenuKind, CreateSelectMenuOption,
     },
     CreateReply,
@@ -47,7 +48,8 @@ fn create_map_info_embed(map: &BSMap, code: String) -> CreateEmbed {
     let embed: CreateEmbed = CreateEmbed::new()
         .title(&map.name)
         .url(format!("https://beatsaver.com/maps/{}", code))
-        .description(&map.description);
+        .description(&map.description)
+        .thumbnail(&map.versions[0].cover_url);
 
     embed
 }
@@ -79,7 +81,6 @@ fn create_map_metadata_embed(map: &BSMap, embed: CreateEmbed) -> CreateEmbed {
                 true,
             ),
         ])
-        .thumbnail(&map.versions[0].cover_url)
         .timestamp(map.uploaded)
         .colour(get_embed_colour(map))
 }
@@ -102,13 +103,18 @@ fn get_map_diffs(map: &BSMap) -> Vec<CreateSelectMenuOption> {
 }
 
 /// Creates the embed representing data for one difficulty.
-fn create_map_diff_embed(diff: &MapDetail, embed: CreateEmbed) -> CreateEmbed {
+fn create_map_diff_embed(diff: &MapDetail, mut embed: CreateEmbed) -> CreateEmbed {
+    embed = embed.field(
+        "Characteristic/Difficulty",
+        format!("{} {}", diff.characteristic, diff.difficulty),
+        false,
+    );
+
+    if let Some(x) = &diff.label {
+        embed = embed.field("Label", x, false);
+    }
+
     embed
-        .field(
-            "Characteristic/Difficulty",
-            format!("{} {}", diff.characteristic, diff.difficulty),
-            false,
-        )
         .fields(vec![
             ("Notes", diff.notes.to_string(), true),
             ("Bombs", diff.bombs.to_string(), true),
@@ -141,7 +147,6 @@ pub async fn bsr(
     ctx: Context<'_>,
     #[description = "The beatmap code (up to 5 alphanumeric characters)"] code: String,
 ) -> Result<(), Error> {
-    let bsr_msg_id = ctx.id();
     let map: BSMap = get_map_data(&code).await?;
     let embed_base: CreateEmbed = create_map_info_embed(&map, code);
 
@@ -156,47 +161,51 @@ pub async fn bsr(
             )
             .placeholder("Select Difficulty"),
         ),
-        CreateActionRow::Buttons(vec![CreateButton::new_link(&map.versions[0].download_url)
-            .label("Download map")
-            .emoji('⬇')]),
+        CreateActionRow::Buttons(vec![
+            CreateButton::new_link(&map.versions[0].download_url)
+                .label("Download map")
+                .emoji('⬇'),
+            CreateButton::new_link(&map.versions[0].preview_url)
+                .label("Preview map")
+                .emoji('⏯'),
+        ]),
     ];
     let mut diff_embeds: HashMap<String, CreateEmbed> =
         create_map_diff_embeds(&map, embed_base.clone());
 
     diff_embeds.insert("Metadata".to_string(), metadata_embed.clone());
 
-    info!("{:?}", diff_embeds);
+    info!("difficulties: {:?}", diff_embeds);
 
     let builder: CreateReply = CreateReply::default()
         .embed(metadata_embed)
         .components(embed_components);
 
     // general metadata message
-    ctx.send(builder).await?;
+    let reply = ctx.send(builder).await?;
 
     // here's the collector for diffs and stuff
     while let Some(mci) = serenity::ComponentInteractionCollector::new(ctx)
         .author_id(ctx.author().id)
         .channel_id(ctx.channel_id())
-        .timeout(std::time::Duration::from_secs(899))
-        .filter(move |mci| mci.data.custom_id == bsr_msg_id.to_string())
+        .message_id(reply.message().await?.id)
+        .timeout(std::time::Duration::from_secs(15 * 60))
+        .filter(move |mci| mci.data.custom_id == "diffsel")
         .await
     {
         info!("interaction happened");
 
-        let mut msg = mci.message.clone();
         let diff_key = match &mci.data.kind {
             serenity::ComponentInteractionDataKind::StringSelect { values } => &values[0],
             _ => panic!("unexpected interaction data kind"),
         };
 
-        let diff_builder =
-            serenity::EditMessage::new().embed(diff_embeds.get(diff_key).unwrap().clone());
+        let diff_builder = CreateInteractionResponseMessage::new()
+            .embed(diff_embeds.get(diff_key).unwrap().clone());
 
-        msg.edit(ctx, diff_builder).await?;
+        let new_message = CreateInteractionResponse::UpdateMessage(diff_builder);
 
-        mci.create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
-            .await?;
+        mci.create_response(ctx, new_message).await?;
     }
 
     Ok(())

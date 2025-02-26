@@ -1,3 +1,5 @@
+use log::debug;
+
 use super::map::BSMap;
 use std::error::Error;
 
@@ -6,6 +8,8 @@ pub async fn get_map_data(id: &String) -> Result<BSMap, Box<dyn Error + Send + S
         .await?
         .text()
         .await?;
+
+    debug!("{}", res);
 
     let map_data_res = serde_json::from_str::<BSMap>(&res);
 
