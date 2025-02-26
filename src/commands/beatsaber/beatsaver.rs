@@ -44,7 +44,7 @@ fn get_diff_colour(diff_name: &str) -> Colour {
 }
 
 /// Creates the general map info embed.
-fn create_map_info_embed(map: &BSMap, code: String) -> CreateEmbed {
+fn create_map_info_embed(map: &BSMap, code: &String) -> CreateEmbed {
     let embed: CreateEmbed = CreateEmbed::new()
         .title(&map.name)
         .url(format!("https://beatsaver.com/maps/{}", code))
@@ -148,7 +148,7 @@ pub async fn bsr(
     #[description = "The beatmap code (up to 5 alphanumeric characters)"] code: String,
 ) -> Result<(), Error> {
     let map: BSMap = get_map_data(&code).await?;
-    let embed_base: CreateEmbed = create_map_info_embed(&map, code);
+    let embed_base: CreateEmbed = create_map_info_embed(&map, &code);
 
     let metadata_embed: CreateEmbed = create_map_metadata_embed(&map, embed_base.clone());
     let embed_components = vec![
@@ -165,9 +165,12 @@ pub async fn bsr(
             CreateButton::new_link(&map.versions[0].download_url)
                 .label("Download map")
                 .emoji('⬇'),
-            CreateButton::new_link(&map.versions[0].preview_url)
-                .label("Preview map")
-                .emoji('⏯'),
+            CreateButton::new_link(format!(
+                "https://allpoland.github.io/ArcViewer/?id={}",
+                &code
+            ))
+            .label("Preview map")
+            .emoji('⏯'),
         ]),
     ];
     let mut diff_embeds: HashMap<String, CreateEmbed> =
