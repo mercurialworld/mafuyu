@@ -110,11 +110,19 @@ fn create_map_diff_embed(diff: &MapDetail, mut embed: CreateEmbed) -> CreateEmbe
         false,
     );
 
-    if let Some(x) = &diff.label {
-        embed = embed.field("Label", x, false);
+    if let Some(label) = &diff.label {
+        embed = embed.field("Label", label, false);
+    }
+
+    if let Some(scoresaber_stars) = diff.ss_stars {
+        embed = embed.field("ScoreSaber Stars", format!("{:.2}", scoresaber_stars), true);
+    }
+    if let Some(beatleader_stars) = diff.bl_stars {
+        embed = embed.field("BeatLeader Stars", format!("{:.2}", beatleader_stars), true);
     }
 
     embed
+        .field("", "", false)
         .fields(vec![
             ("Notes", diff.notes.to_string(), true),
             ("Bombs", diff.bombs.to_string(), true),
@@ -163,13 +171,13 @@ pub async fn bsr(
         ),
         CreateActionRow::Buttons(vec![
             CreateButton::new_link(&map.versions[0].download_url)
-                .label("Download map")
+                .label("Download")
                 .emoji('⬇'),
             CreateButton::new_link(format!(
                 "https://allpoland.github.io/ArcViewer/?id={}",
                 &code
             ))
-            .label("Preview map")
+            .label("Preview")
             .emoji('⏯'),
         ]),
     ];
