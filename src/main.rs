@@ -24,6 +24,7 @@ async fn main() {
         .options(poise::FrameworkOptions {
             commands: vec![
                 commands::misc::sync::sync(),
+                commands::misc::status::status(),
                 commands::beatsaber::beatsaver::bsr(),
             ],
             pre_command: |ctx| {
