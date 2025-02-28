@@ -18,7 +18,7 @@ use poise::{
     CreateReply,
 };
 
-/// Adds a colour to the map embed.
+/// Adds a colour to the map metadata embed.
 fn get_embed_colour(map: &BSMap) -> Colour {
     if map.ss_ranked || map.bl_ranked {
         Colour::from_rgb(243, 156, 18)
@@ -31,7 +31,7 @@ fn get_embed_colour(map: &BSMap) -> Colour {
     }
 }
 
-/// Adds a difficulty colour to the map embed.
+/// Adds a difficulty colour to the map difficulty embed.
 fn get_diff_colour(diff_name: &str) -> Colour {
     match diff_name {
         "ExpertPlus" => Colour::from_rgb(166, 149, 255),
@@ -134,7 +134,7 @@ fn create_map_diff_embed(diff: &MapDetail, mut embed: CreateEmbed) -> CreateEmbe
         .colour(get_diff_colour(&diff.difficulty))
 }
 
-/// Creates a vector of embeds representing difficulty data.
+/// Creates a hashmap of embeds representing difficulty data.
 fn create_map_diff_embeds(map: &BSMap, embed: CreateEmbed) -> HashMap<String, CreateEmbed> {
     let mut diffs = HashMap::new();
     for diff in map.versions[0].diffs.iter() {
@@ -185,9 +185,12 @@ pub async fn bsr(
             .emoji('⏯'),
         ]),
     ];
+
+    // create separate difficulty embeds at once
     let mut diff_embeds: HashMap<String, CreateEmbed> =
         create_map_diff_embeds(&map, embed_base.clone());
 
+    // add the general metadata as well
     diff_embeds.insert("Metadata".to_string(), metadata_embed.clone());
 
     info!("difficulties: {:?}", diff_embeds);
