@@ -150,7 +150,11 @@ fn create_map_diff_embeds(map: &BSMap, embed: CreateEmbed) -> HashMap<String, Cr
 }
 
 /// Searches a Beat Saber custom map from BeatSaver.   
-#[poise::command(slash_command)]
+#[poise::command(
+    slash_command,
+    install_context = "Guild|User",
+    interaction_context = "Guild|BotDm|PrivateChannel"
+)]
 pub async fn bsr(
     ctx: Context<'_>,
     #[description = "The beatmap code (up to 5 alphanumeric characters)"] code: String,
