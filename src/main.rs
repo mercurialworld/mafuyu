@@ -6,7 +6,7 @@ use poise::{
 
 mod commands;
 mod services;
-use log::{info, warn};
+use log::{debug, info, warn};
 
 struct Data {} // User data, which is stored and accessible in all command invocations
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -23,9 +23,9 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![
-                commands::misc::sync::sync(),
-                commands::misc::status::status(),
                 commands::beatsaber::beatsaver::bsr(),
+                commands::misc::status::status(),
+                commands::misc::sync::sync(),
             ],
             pre_command: |ctx| {
                 Box::pin(async move {
@@ -69,6 +69,14 @@ async fn main() {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+
+                debug!("Setting activity text");
+                ctx.set_activity(Some(serenity::ActivityData::custom(format!(
+                    "v{}",
+                    env!("CARGO_PKG_VERSION")
+                ))));
+
+                info!("Mafuyu started!");
                 Ok(Data {})
             })
         })
@@ -78,6 +86,5 @@ async fn main() {
         .framework(framework)
         .await;
 
-    info!("Mafuyu started!");
     client.unwrap().start().await.unwrap();
 }
