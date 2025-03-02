@@ -1,0 +1,6 @@
+services:
+  bot:
+    stop_signal: SIGINT
+    secrets:
+      - source: env
+        target: /app/.env

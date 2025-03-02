@@ -1,0 +1,10 @@
+# dev overrides
+services:
+  bot:
+    build: .
+    environment:
+      - RUST_LOG=serenity,poise,mafuyu=debug
+
+secrets:
+  env: 
+    file: .env
