@@ -12,7 +12,6 @@
   },
   "license": "MIT",
   "author": "mercurialworld",
-  "type": "module",
   "main": "aws_cdk/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -33,7 +32,7 @@
   },
   "dependencies": {
     "aws-cdk-lib": "2.180.0",
-    "constructs": "^10.0.0",
-    "chaeri": "mercurialworld/chaeri#0528d6f"
+    "chaeri": "github:mercurialworld/chaeri#v0.1.3",
+    "constructs": "^10.0.0"
   }
 }
