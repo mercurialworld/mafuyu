@@ -1,0 +1,11 @@
+# prod overrides
+services:
+  bot:
+    restart: unless-stopped
+    image: "${IMAGE}"
+    environment:
+      - RUST_LOG=mafuyu=debug
+
+secrets:
+  env:
+    file: .env
