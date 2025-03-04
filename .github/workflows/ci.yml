@@ -5,14 +5,132 @@ on:
     tags: 'v[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch: 
 
+env:
+  NODE_VERSION: 22
+  CONTAINER_REGISTRY: ghcr.io
+
 jobs:
   build:
     uses: ./.github/workflows/build.yml
     secrets: inherit
-  
-  deploy:
-    uses: ./.github/workflows/deploy.yml
-    needs: build
-    secrets: inherit
-    with:
-      build-image-tag: ${{ needs.build.outputs.key }}
+
+  push-image:
+    needs:
+      build
+    runs-on: ubuntu-latest
+    environment:
+      name: docker
+      url: https://${{ needs.build.outputs.key }}
+    outputs:
+      digest: ${{ steps.digest.outputs.value }}
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.CONTAINER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Download image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load image
+        run: docker load --input /tmp/image.tar
+
+      - name: Push image
+        run: docker image push --all-tags ${{ env.CONTAINER_REGISTRY }}/${{ github.repository }}
+
+      - name: Get image digest
+        id: digest
+        run: echo "value=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ needs.build.outputs.key }})" >> "$GITHUB_OUTPUT"
+
+  deploy-aws-cdk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: aws-cdk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install NPM packages
+        shell: bash
+        run: npm ci
+
+      - uses: mercurialworld/chaeri/setup-aws@main
+        with:
+          role-to-assume: repo
+
+      - name: Download synth artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: aws-cdk-synth
+          path: cdk.out
+
+      - name: Deploy stack
+        run: npx cdk deploy --ci --no-lookups --require-approval=never --app=cdk.out --outputs-file=outputs.json
+
+      - name: Upload outputs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aws-cdk-outputs
+          path: outputs.json
+
+  deploy-codedeploy:
+    needs:
+      - push-image
+      - deploy-aws-cdk
+    environment:
+      name: codedeploy
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Download outputs artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: aws-cdk-outputs
+
+      - name: Parse outputs
+        id: parse
+        uses: mercurialworld/chaeri/parse-cdk@main
+        with:
+          file: outputs.json
+      
+      - name: Setup AWS
+        uses: mercurialworld/chaeri/setup-aws@main
+        with:
+          role-to-assume: ${{ steps.parse.outputs.ActionsCodeDeployRoleARN }}
+      
+      - name: Create environment/config files
+        working-directory: codedeploy
+        run:
+          cat << EOF > .env
+          IMAGE="${{ needs.push-image.outputs.digest }}"
+          DISCORD_TOKEN="${{ secrets.DISCORD_TOKEN }}"
+          EOF
+      
+      - name: Deploy bot
+        id: deploy
+        uses: mercurialworld/chaeri/deploy-codedeploy@main
+        with:
+          path: codedeploy
+          stack: ${{ steps.parse.outputs.stack-name }}
+          application: ${{ steps.parse.outputs.ApplicationName }}
+          deployment-group: ${{ steps.parse.outputs.DeploymentGroupName }}
+
