@@ -15,8 +15,8 @@ jobs:
     secrets: inherit
 
   push-image:
-    needs:
-      build
+    needs: 
+      - build
     runs-on: ubuntu-latest
     environment:
       name: docker
@@ -51,6 +51,8 @@ jobs:
         run: echo "value=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ needs.build.outputs.key }})" >> "$GITHUB_OUTPUT"
 
   deploy-aws-cdk:
+    needs: 
+      - build
     runs-on: ubuntu-latest
     permissions:
       contents: read
