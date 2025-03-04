@@ -69,10 +69,10 @@ jobs:
       
       - name: Install NPM packages
         shell: bash
-        run: npm install -g aws-cdk
+        run: npm ci
       
       - name: Synth AWS-CDK stack
-        run: cdk synth --ci --no-lookups --strict
+        run: npx cdk synth --ci --no-lookups --strict
 
       - name: Upload synth artifact
         uses: actions/upload-artifact@v4
