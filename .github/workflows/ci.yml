@@ -18,6 +18,9 @@ jobs:
     needs: 
       - build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     environment:
       name: docker
       url: https://${{ needs.build.outputs.key }}
