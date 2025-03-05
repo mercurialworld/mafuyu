@@ -51,6 +51,7 @@ jobs:
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_call'
         with:
           name: docker-image
           path: /tmp/image.tar
