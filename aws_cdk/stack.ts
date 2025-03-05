@@ -6,7 +6,7 @@ export class MafuyuStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: cdk.StackProps) {
         super(scope, id, props);
 
-        new CodeDeployApp(this, id, {
+        new CodeDeployApp(this, "CodeDeploy", {
             githubRepo: getRepoFromEnv(),
             codedeployGitHubEnv: "codedeploy",
             onPremInstanceTag: "dreamcatching"
