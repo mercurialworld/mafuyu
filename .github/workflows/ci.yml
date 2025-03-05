@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: npm ci
 
-      - uses: mercurialworld/chaeri/setup-aws@main
+      - uses: mercurialworld/chaeri-actions/setup-aws@v1
         with:
           role-to-assume: repo
 
@@ -125,12 +125,12 @@ jobs:
 
       - name: Parse outputs
         id: parse
-        uses: mercurialworld/chaeri/parse-cdk@main
+        uses: mercurialworld/chaeri-actions/parse-cdk@v1
         with:
           file: outputs.json
       
       - name: Setup AWS
-        uses: mercurialworld/chaeri/setup-aws@main
+        uses: mercurialworld/chaeri-actions/setup-aws@v1
         with:
           role-to-assume: ${{ steps.parse.outputs.ActionsCodeDeployRoleARN }}
       
@@ -144,7 +144,7 @@ jobs:
       
       - name: Deploy bot
         id: deploy
-        uses: mercurialworld/chaeri/deploy-codedeploy@main
+        uses: mercurialworld/chaeri-actions/deploy-codedeploy@v1
         with:
           path: codedeploy
           stack: ${{ steps.parse.outputs.stack-name }}
