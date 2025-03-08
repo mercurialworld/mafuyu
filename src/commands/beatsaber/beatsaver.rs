@@ -1,25 +1,20 @@
 use std::collections::HashMap;
 
-use crate::{
-    services::beatsaver::{
-        api::get_map_data,
-        map::{BSMap, MapDetail},
-    },
-    Context, Error,
-};
+use crate::{Context, Error};
+use beatsaver_api::models::map::{Map, MapDifficulty};
 use log::info;
 use poise::{
     self,
     serenity_prelude::{
-        self as serenity, Colour, CreateActionRow, CreateButton, CreateEmbed,
-        CreateInteractionResponse, CreateInteractionResponseMessage, CreateSelectMenu,
+        self as serenity, futures::stream::ForEach, Colour, CreateActionRow, CreateButton,
+        CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage, CreateSelectMenu,
         CreateSelectMenuKind, CreateSelectMenuOption,
     },
     CreateReply,
 };
 
 /// Adds a colour to the map metadata embed.
-fn get_embed_colour(map: &BSMap) -> Colour {
+fn get_embed_colour(map: &Map) -> Colour {
     if map.ss_ranked || map.bl_ranked {
         Colour::from_rgb(243, 156, 18)
     } else if map.curated_at.is_some() {
@@ -44,7 +39,7 @@ fn get_diff_colour(diff_name: &str) -> Colour {
 }
 
 /// Creates the general map info embed.
-fn create_map_info_embed(map: &BSMap, code: &String) -> CreateEmbed {
+fn create_map_info_embed(map: &Map, code: &String) -> CreateEmbed {
     let embed: CreateEmbed = CreateEmbed::new()
         .title(&map.name)
         .url(format!("https://beatsaver.com/maps/{}", code))
@@ -56,7 +51,7 @@ fn create_map_info_embed(map: &BSMap, code: &String) -> CreateEmbed {
 }
 
 /// Creates the metadata part of the embed.
-fn create_map_metadata_embed(map: &BSMap, embed: CreateEmbed) -> CreateEmbed {
+fn create_map_metadata_embed(map: &Map, embed: CreateEmbed) -> CreateEmbed {
     embed
         .field("Mapper(s)", &map.metadata.level_author_name, false)
         .field("Artist(s)", &map.metadata.song_author_name, false)
@@ -86,14 +81,14 @@ fn create_map_metadata_embed(map: &BSMap, embed: CreateEmbed) -> CreateEmbed {
 }
 
 /// Creates the options menu for the available difficulties.
-fn get_map_diffs(map: &BSMap) -> Vec<CreateSelectMenuOption> {
+fn get_map_diffs(map: &Map) -> Vec<CreateSelectMenuOption> {
     let mut map_diffs: Vec<CreateSelectMenuOption> =
-        vec![CreateSelectMenuOption::new("Metadata", "Metadata")];
+        vec![CreateSelectMenuOption::new("Metadata", "Metadata").default_selection(true)];
 
-    map_diffs.extend(map.versions[0].diffs.iter().map(|diff| {
+    map_diffs.extend(map.versions[0].diffs.iter().enumerate().map(|(idx, diff)| {
         CreateSelectMenuOption::new(
-            format!("{} ({})", diff.difficulty, diff.characteristic),
-            format!("{}{}", diff.characteristic, diff.difficulty),
+            format!("{} ({:?})", diff.difficulty, diff.characteristic),
+            idx.to_string(),
         )
     }));
 
@@ -103,10 +98,10 @@ fn get_map_diffs(map: &BSMap) -> Vec<CreateSelectMenuOption> {
 }
 
 /// Creates the embed representing data for one difficulty.
-fn create_map_diff_embed(diff: &MapDetail, mut embed: CreateEmbed) -> CreateEmbed {
+fn create_map_diff_embed(diff: &MapDifficulty, mut embed: CreateEmbed) -> CreateEmbed {
     embed = embed.field(
         "Characteristic/Difficulty",
-        format!("{} {}", diff.characteristic, diff.difficulty),
+        format!("{:?} {}", diff.characteristic, diff.difficulty),
         false,
     );
 
@@ -135,13 +130,13 @@ fn create_map_diff_embed(diff: &MapDetail, mut embed: CreateEmbed) -> CreateEmbe
 }
 
 /// Creates a hashmap of embeds representing difficulty data.
-fn create_map_diff_embeds(map: &BSMap, embed: CreateEmbed) -> HashMap<String, CreateEmbed> {
+fn create_map_diff_embeds(map: &Map, embed: CreateEmbed) -> HashMap<String, CreateEmbed> {
     let mut diffs = HashMap::new();
     for diff in map.versions[0].diffs.iter() {
         let diff_embed = embed.clone();
 
         diffs.insert(
-            format!("{}{}", diff.characteristic, diff.difficulty),
+            format!("{:?}{}", diff.characteristic, diff.difficulty),
             create_map_diff_embed(diff, diff_embed),
         );
     }
@@ -159,19 +154,16 @@ pub async fn bsr(
     ctx: Context<'_>,
     #[description = "The beatmap code (up to 5 alphanumeric characters)"] code: String,
 ) -> Result<(), Error> {
-    let map: BSMap = get_map_data(&code).await?;
+    let map: Map = ctx.data().beatsaver_client.map(&code).await?;
     let embed_base: CreateEmbed = create_map_info_embed(&map, &code);
 
     let metadata_embed: CreateEmbed = create_map_metadata_embed(&map, embed_base.clone());
+    let mut diffs = get_map_diffs(&map);
+
     let embed_components = vec![
         CreateActionRow::SelectMenu(
-            CreateSelectMenu::new(
-                "diffsel",
-                CreateSelectMenuKind::String {
-                    options: get_map_diffs(&map),
-                },
-            )
-            .placeholder("Select Difficulty"),
+            CreateSelectMenu::new("diffsel", CreateSelectMenuKind::String { options: diffs })
+                .placeholder("Select Difficulty"),
         ),
         CreateActionRow::Buttons(vec![
             CreateButton::new_link(&map.versions[0].download_url)

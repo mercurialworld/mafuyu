@@ -1,3 +1,4 @@
+use beatsaver_api::client::BeatSaverClient;
 use dotenvy::dotenv;
 use poise::{
     serenity_prelude::{self as serenity, CreateEmbed},
@@ -5,11 +6,12 @@ use poise::{
 };
 
 mod commands;
-mod services;
 use log::{debug, info, warn};
 
-struct Data {} // User data, which is stored and accessible in all command invocations
-type Error = Box<dyn std::error::Error + Send + Sync>;
+struct Data {
+    beatsaver_client: BeatSaverClient,
+} // User data, which is stored and accessible in all command invocations
+type Error = anyhow::Error;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
@@ -53,9 +55,16 @@ async fn main() {
 
                     match error {
                         poise::FrameworkError::Command { error, ctx, .. } => {
+                            let mut error_description: String = "".to_string();
+
+                            error.chain().skip(1).for_each(|cause| {
+                                warn!("because: {:?}", cause);
+                                error_description.push_str(&format!("because: {}\n", cause));
+                            });
+
                             let embed = CreateEmbed::new()
-                                .title("Error!")
-                                .description(error.to_string());
+                                .title(format!("Error: {error}"))
+                                .description(error_description);
 
                             let builder = CreateReply::default().embed(embed);
                             let _ = ctx.send(builder).await;
@@ -76,8 +85,12 @@ async fn main() {
                     env!("CARGO_PKG_VERSION")
                 ))));
 
+                let bs_client = BeatSaverClient::new();
+
                 info!("Mafuyu started!");
-                Ok(Data {})
+                Ok(Data {
+                    beatsaver_client: bs_client,
+                })
             })
         })
         .build();
