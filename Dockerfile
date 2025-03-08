@@ -16,7 +16,7 @@ RUN cargo build --release
 # We do not need the Rust toolchain to run the binary!
 FROM debian:bookworm-slim AS runtime
 RUN apt-get update && \
-    apt-get install pkg-config libssl-dev -y && \
+    apt-get install pkg-config libssl-dev ca-certificates -y && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /app/target/release/mafuyu /usr/local/bin
