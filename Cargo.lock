@@ -158,8 +158,8 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "beatsaver-api"
-version = "0.1.0"
-source = "git+https://github.com/mercurialworld/beatsaver-api.git?rev=7509a25#7509a25498177a30d8afbc232d929fc09b542239"
+version = "0.1.2"
+source = "git+https://github.com/mercurialworld/beatsaver-api.git#b03593578743cae9ecae31399b9e4850d372c5db"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2613,7 +2613,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
