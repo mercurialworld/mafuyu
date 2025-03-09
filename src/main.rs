@@ -66,7 +66,7 @@ async fn main() {
                                 .title(format!("Error: {error}"))
                                 .description(error_description);
 
-                            let builder = CreateReply::default().embed(embed);
+                            let builder = CreateReply::default().embed(embed).ephemeral(true);
                             let _ = ctx.send(builder).await;
                         }
                         other => poise::builtins::on_error(other).await.unwrap(),
