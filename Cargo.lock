@@ -159,7 +159,7 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 [[package]]
 name = "beatsaver-api"
 version = "0.1.0"
-source = "git+https://github.com/mercurialworld/beatsaver-api.git#e957d441c75f15d2cca55d5bcc4580350187ff91"
+source = "git+https://github.com/mercurialworld/beatsaver-api.git?rev=7509a25#7509a25498177a30d8afbc232d929fc09b542239"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1155,7 +1155,7 @@ checksum = "04cbf5b083de1c7e0222a7a51dbfdba1cbe1c6ab0b15e29fff3f6c077fd9cd9f"
 
 [[package]]
 name = "mafuyu"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "beatsaver-api",

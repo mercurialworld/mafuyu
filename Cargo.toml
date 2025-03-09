@@ -1,12 +1,12 @@
 [package]
 name = "mafuyu"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 license = "MIT"
 
 [dependencies]
 anyhow = "1.0.97"
-beatsaver-api = { git = "https://github.com/mercurialworld/beatsaver-api.git", version = "0.1.0" }
+beatsaver-api = { git = "https://github.com/mercurialworld/beatsaver-api.git", rev = "7509a25" }
 chrono = { version = "0.4.40", features = ["serde"] }
 dotenvy = "0.15.7"
 env_logger = "0.11.6"
