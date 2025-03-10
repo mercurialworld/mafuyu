@@ -1,4 +1,7 @@
-use beatsaver_api::models::map::{Map, MapDifficulty};
+use beatsaver_api::models::{
+    enums::Characteristic,
+    map::{Map, MapDifficulty},
+};
 use log::info;
 use poise::serenity_prelude::{
     Colour, CreateActionRow, CreateButton, CreateEmbed, CreateSelectMenu, CreateSelectMenuKind,
@@ -44,10 +47,13 @@ impl MapEmbed {
         self.set_new_default();
     }
 
-    pub fn build_embed(&self) -> CreateEmbed {
+    pub fn build_embeds(&self) -> Vec<CreateEmbed> {
         match self.selected_index {
-            0 => self.create_map_metadata_embed(),
-            idx => self.create_map_diff_embed(&self.map.versions[0].diffs[idx - 1]),
+            0 => vec![self.create_map_metadata_embed()],
+            idx => vec![
+                self.create_map_metadata_embed(),
+                self.create_map_diff_embed(&self.map.versions[0].diffs[idx - 1]),
+            ],
         }
     }
 
@@ -131,16 +137,19 @@ impl MapEmbed {
 
     /// Creates the embed representing data for one difficulty.
     fn create_map_diff_embed(&self, diff: &MapDifficulty) -> CreateEmbed {
-        let mut embed = self.create_base_embed();
+        let mut embed = CreateEmbed::new()
+            .title(if let Some(label) = &diff.label {
+                label
+            } else {
+                &diff.difficulty
+            })
+            .thumbnail(self.get_characteristic_thumbnail(&diff.characteristic));
+
         embed = embed.field(
             "Characteristic/Difficulty",
             format!("{} {}", diff.characteristic.name(), diff.difficulty),
             false,
         );
-
-        if let Some(label) = &diff.label {
-            embed = embed.field("Label", label, false);
-        }
 
         if let Some(scoresaber_stars) = diff.ss_stars {
             embed = embed.field("ScoreSaber Stars", format!("{:.2}", scoresaber_stars), true);
@@ -186,6 +195,20 @@ impl MapEmbed {
             "Normal" => Colour::from_rgb(0, 238, 255),
             "Easy" => Colour::from_rgb(129, 199, 132),
             _ => unreachable!(),
+        }
+    }
+
+    /// Gets a thumbnail of the difficulty's characteristic.
+    fn get_characteristic_thumbnail(&self, characteristic: &Characteristic) -> String {
+        match characteristic {
+            Characteristic::Standard => "https://raw.githubusercontent.com/mercurialworld/mafuyu/refs/heads/main/assets/Standard.png".into(),
+            Characteristic::OneSaber => "https://raw.githubusercontent.com/mercurialworld/mafuyu/refs/heads/main/assets/OneSaber.png".into(),
+            Characteristic::NoArrows => "https://raw.githubusercontent.com/mercurialworld/mafuyu/refs/heads/main/assets/NoArrows.png".into(),
+            Characteristic::Rotation90Degrees => "https://raw.githubusercontent.com/mercurialworld/mafuyu/refs/heads/main/assets/90Degree.png".into(),
+            Characteristic::Rotation360Degrees => "https://raw.githubusercontent.com/mercurialworld/mafuyu/refs/heads/main/assets/360Degree.png".into(),
+            Characteristic::Lightshow => "https://raw.githubusercontent.com/mercurialworld/mafuyu/refs/heads/main/assets/Lightshow.png".into(),
+            Characteristic::Lawless => "https://raw.githubusercontent.com/mercurialworld/mafuyu/refs/heads/main/assets/Lawless.png".into(),
+            Characteristic::Legacy => "https://raw.githubusercontent.com/mercurialworld/mafuyu/refs/heads/main/assets/Legacy.png".into(),
         }
     }
 }

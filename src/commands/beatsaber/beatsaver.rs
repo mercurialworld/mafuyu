@@ -23,7 +23,7 @@ pub async fn bsr(
     let mut map_embed: MapEmbed = MapEmbed::new(map);
 
     let builder: CreateReply = CreateReply::default()
-        .embed(map_embed.build_embed())
+        .embed(map_embed.build_embeds()[0].clone()) // just the metadata
         .components(map_embed.build_embed_components());
 
     // general metadata message
@@ -48,7 +48,7 @@ pub async fn bsr(
         map_embed.set_index(diff_key);
 
         let diff_builder = CreateInteractionResponseMessage::new()
-            .embed(map_embed.build_embed())
+            .embeds(map_embed.build_embeds())
             .components(map_embed.build_embed_components());
 
         let new_message = CreateInteractionResponse::UpdateMessage(diff_builder);
