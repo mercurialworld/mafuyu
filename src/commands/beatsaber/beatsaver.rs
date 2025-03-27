@@ -17,8 +17,15 @@ use poise::{
 )]
 pub async fn bsr(
     ctx: Context<'_>,
-    #[description = "The beatmap code (up to 5 alphanumeric characters)"] code: String,
+    #[description = "The beatmap code (up to 5 alphanumeric characters)"] mut code: String,
 ) -> Result<(), Error> {
+    // in case someone pastes directly from the twitch command clicky thingy
+    if code.starts_with("!bsr ") {
+        code = code[5..].to_string();
+    }
+
+    info!("code is {}", &code);
+
     let map: Map = ctx.data().beatsaver_client.map(&code).await?;
     let mut map_embed: MapEmbed = MapEmbed::new(map);
 

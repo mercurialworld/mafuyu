@@ -4,8 +4,8 @@ use beatsaver_api::models::{
 };
 use log::info;
 use poise::serenity_prelude::{
-    Colour, CreateActionRow, CreateButton, CreateEmbed, CreateSelectMenu, CreateSelectMenuKind,
-    CreateSelectMenuOption,
+    Colour, CreateActionRow, CreateButton, CreateEmbed, CreateEmbedFooter, CreateSelectMenu,
+    CreateSelectMenuKind, CreateSelectMenuOption,
 };
 
 pub struct MapEmbed {
@@ -99,6 +99,7 @@ impl MapEmbed {
             .url(format!("https://beatsaver.com/maps/{}", self.map.id))
             .description(&self.map.description)
             .thumbnail(&self.map.versions[0].cover_url)
+            .footer(CreateEmbedFooter::new(format!("!bsr {}", &self.map.id)))
             .timestamp(self.map.uploaded);
 
         embed
