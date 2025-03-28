@@ -125,7 +125,7 @@ impl MapEmbed {
                 (
                     "Rating",
                     &format!(
-                        "▲ {} / ▼ {} ({}%)",
+                        "▲ {} / ▼ {} ({:.2}%)",
                         self.map.stats.upvotes,
                         self.map.stats.downvotes,
                         self.map.stats.score * 100.0
