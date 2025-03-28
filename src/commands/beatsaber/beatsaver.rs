@@ -17,14 +17,19 @@ use poise::{
 )]
 pub async fn bsr(
     ctx: Context<'_>,
-    #[description = "The beatmap code (up to 5 alphanumeric characters)"] mut code: String,
+    #[description = "The beatmap code (up to 5 alphanumeric characters). Will also accept BeatSaver links."]
+    mut code: String,
 ) -> Result<(), Error> {
     // in case someone pastes directly from the twitch command clicky thingy
     if code.starts_with("!bsr ") {
         code = code[5..].to_string();
     }
+    // in case someone pastes the link to the map with the code
+    else if let Some(caps) = ctx.data().bsr_link_regex.captures(&code) {
+        code = caps["bsr"].to_string();
+    }
 
-    info!("code is {}", &code);
+    info!("Code is {}", &code);
 
     let map: Map = ctx.data().beatsaver_client.map(&code).await?;
     let mut map_embed: MapEmbed = MapEmbed::new(map);
@@ -45,7 +50,11 @@ pub async fn bsr(
         .filter(move |mci| mci.data.custom_id == "diffsel")
         .await
     {
-        info!("interaction happened");
+        info!(
+            "Difficulty request for !bsr {} requested by {}",
+            &code,
+            ctx.author().name
+        );
 
         let diff_key = match &mci.data.kind {
             serenity::ComponentInteractionDataKind::StringSelect { values } => &values[0],

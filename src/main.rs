@@ -7,9 +7,11 @@ use poise::{
 
 mod commands;
 use log::{debug, info, warn};
+use regex::Regex;
 
 struct Data {
     beatsaver_client: BeatSaverClient,
+    bsr_link_regex: Regex,
 } // User data, which is stored and accessible in all command invocations
 type Error = anyhow::Error;
 type Context<'a> = poise::Context<'a, Data, Error>;
@@ -86,10 +88,15 @@ async fn main() {
                 ))));
 
                 let bs_client = BeatSaverClient::new();
+                let url_regex = Regex::new(
+                    r"(?:https?://)?(?:www\.)?beatsaver\.com/maps/(?P<bsr>[a-fA-F0-9]+)",
+                )
+                .unwrap();
 
                 info!("Mafuyu started!");
                 Ok(Data {
                     beatsaver_client: bs_client,
+                    bsr_link_regex: url_regex,
                 })
             })
         })
