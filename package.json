@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "aws-cdk-lib": "2.187.0",
-    "chaeri": "github:mercurialworld/chaeri#semver:^v0.2.3",
+    "chaeri": "github:mercurialworld/chaeri#semver:^v0.2.4",
     "constructs": "^10.4.2",
     "tslib": "^2.8.1"
   }
