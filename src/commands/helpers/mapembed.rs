@@ -31,6 +31,37 @@ fn get_map_diffs_list(map: &Map) -> Vec<CreateSelectMenuOption> {
     map_diffs
 }
 
+/// Truncates a map's description.
+fn truncate_description(mut text: String, limit: Option<usize>, string_end: String) -> String {
+    match limit {
+        Some(mut l) => {
+            l -= string_end.len();
+
+            if text.len() >= l {
+                text.truncate(l);
+                text.push_str(&string_end);
+                text
+            } else {
+                text
+            }
+        }
+        None => text,
+    }
+}
+
+/// Formats a duration in seconds to (optional) hours, minutes, and seconds.
+fn format_time(duration: i32) -> String {
+    let seconds = duration % 60;
+    let minutes = (duration / 60) % 60;
+    let hours = (duration / 60) / 60;
+
+    if hours > 0 {
+        format!("{}:{:0>2}:{:0>2}", hours, minutes, seconds)
+    } else {
+        format!("{}:{:0>2}", minutes, seconds)
+    }
+}
+
 impl MapEmbed {
     pub fn new(map: Map) -> Self {
         let options = get_map_diffs_list(&map);
@@ -97,7 +128,11 @@ impl MapEmbed {
         let embed: CreateEmbed = CreateEmbed::new()
             .title(&self.map.name)
             .url(format!("https://beatsaver.com/maps/{}", self.map.id))
-            .description(&self.map.description)
+            .description(truncate_description(
+                self.map.description.clone(),
+                Some(2048), // !bsr 45001 is 4100 characters
+                "...".to_string(),
+            ))
             .thumbnail(&self.map.versions[0].cover_url)
             .footer(CreateEmbedFooter::new(format!("!bsr {}", &self.map.id)))
             .timestamp(self.map.uploaded);
@@ -113,15 +148,7 @@ impl MapEmbed {
             .field("Artist(s)", &self.map.metadata.song_author_name, false)
             .fields([
                 ("BPM", &self.map.metadata.bpm.to_string(), true),
-                (
-                    "Length",
-                    &format!(
-                        "{}:{:0>2}",
-                        (self.map.metadata.duration / 60) % 60,
-                        self.map.metadata.duration % 60
-                    ),
-                    true,
-                ),
+                ("Length", &format_time(self.map.metadata.duration), true),
                 (
                     "Rating",
                     &format!(
