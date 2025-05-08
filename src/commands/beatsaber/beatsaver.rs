@@ -1,4 +1,7 @@
-use crate::{commands::helpers::mapembed::MapEmbed, Context, Error};
+use crate::{
+    commands::{autocomplete, helpers::mapembed::MapEmbed},
+    Context, Error,
+};
 use beatsaver_api::models::map::Map;
 use log::info;
 use poise::{
@@ -17,19 +20,11 @@ use poise::{
 )]
 pub async fn bsr(
     ctx: Context<'_>,
-    #[description = "The beatmap code (up to 5 alphanumeric characters). Will also accept BeatSaver links."]
-    mut code: String,
+    #[description = "The beatmap ID, a link, or a BeatSaver search query."]
+    #[autocomplete = "autocomplete::beatsaver::autocomplete_map"]
+    query: String,
 ) -> Result<(), Error> {
-    // in case someone pastes directly from the twitch command clicky thingy
-    if code.starts_with("!bsr ") {
-        code = code[5..].to_string();
-    }
-    // in case someone pastes the link to the map with the code
-    else if let Some(caps) = ctx.data().bsr_link_regex.captures(&code) {
-        code = caps["bsr"].to_string();
-    }
-
-    info!("Code is {}", &code);
+    let code = query;
 
     let map: Map = ctx.data().beatsaver_client.map(&code).await?;
     let mut map_embed: MapEmbed = MapEmbed::new(map);
