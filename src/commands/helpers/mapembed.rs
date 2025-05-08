@@ -8,6 +8,8 @@ use poise::serenity_prelude::{
     CreateSelectMenuKind, CreateSelectMenuOption,
 };
 
+use super::truncate::truncate_string;
+
 pub struct MapEmbed {
     pub map: Map,
     pub selected_index: usize,
@@ -29,24 +31,6 @@ fn get_map_diffs_list(map: &Map) -> Vec<CreateSelectMenuOption> {
     info!("Difficulties: {:?}", map_diffs);
 
     map_diffs
-}
-
-/// Truncates a map's description.
-fn truncate_description(mut text: String, limit: Option<usize>, string_end: String) -> String {
-    match limit {
-        Some(mut l) => {
-            l -= string_end.len();
-
-            if text.len() >= l {
-                text.truncate(l);
-                text.push_str(&string_end);
-                text
-            } else {
-                text
-            }
-        }
-        None => text,
-    }
 }
 
 /// Formats a duration in seconds to (optional) hours, minutes, and seconds.
@@ -128,7 +112,7 @@ impl MapEmbed {
         let embed: CreateEmbed = CreateEmbed::new()
             .title(&self.map.name)
             .url(format!("https://beatsaver.com/maps/{}", self.map.id))
-            .description(truncate_description(
+            .description(truncate_string(
                 self.map.description.clone(),
                 Some(2048), // !bsr 45001 is 4100 characters
                 "...".to_string(),
