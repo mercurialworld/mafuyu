@@ -2,7 +2,6 @@ use beatsaver_api::models::{
     enums::Characteristic,
     map::{Map, MapDifficulty},
 };
-use log::info;
 use poise::serenity_prelude::{
     Colour, CreateActionRow, CreateButton, CreateEmbed, CreateEmbedFooter, CreateSelectMenu,
     CreateSelectMenuKind, CreateSelectMenuOption,

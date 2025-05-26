@@ -1,5 +1,8 @@
 use crate::{
-    commands::{autocomplete, helpers::mapembed::MapEmbed},
+    commands::{
+        autocomplete::beatsaver::{autocomplete_map, find_bsr},
+        helpers::mapembed::MapEmbed,
+    },
     Context, Error,
 };
 use beatsaver_api::models::map::Map;
@@ -21,10 +24,14 @@ use poise::{
 pub async fn bsr(
     ctx: Context<'_>,
     #[description = "The beatmap ID, a link, or a BeatSaver search query."]
-    #[autocomplete = "autocomplete::beatsaver::autocomplete_map"]
+    #[autocomplete = "autocomplete_map"]
     query: String,
 ) -> Result<(), Error> {
-    let code = query;
+    // if user doesn't use the autocomplete functions
+    let code = match find_bsr(ctx, &query) {
+        Some(bsr) => bsr,
+        None => query,
+    };
 
     let map: Map = ctx.data().beatsaver_client.map(&code).await?;
     let mut map_embed: MapEmbed = MapEmbed::new(map);

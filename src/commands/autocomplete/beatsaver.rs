@@ -8,32 +8,31 @@ struct MapAutocomplete {
     id: String,
 }
 
+pub fn find_bsr(ctx: Context<'_>, input: &str) -> Option<String> {
+    // copied and pasted twitch icon
+    if let Some(stripped) = input.strip_prefix("!bsr ") {
+        return Some(stripped.to_string());
+    }
+    // beatsaver link
+    else if let Some(caps) = ctx.data().bsr_link_regex.captures(input) {
+        return Some(caps["bsr"].to_string());
+    }
+    // just the code flat out
+    else if let Some(caps) = ctx.data().hexstring_regex.captures(input.trim()) {
+        return Some(caps[0].to_string());
+    }
+
+    None
+}
+
 pub async fn autocomplete_map<'a>(
     ctx: Context<'_>,
     input: &'a str,
 ) -> impl Stream<Item = serenity::AutocompleteChoice> + 'a {
-    let mut code: Option<String> = None;
-    let maps: Vec<MapAutocomplete>;
-
-    // copied and pasted twitch icon
-    if let Some(stripped) = input.strip_prefix("!bsr ") {
-        code = Some(stripped.to_string());
-    }
-    // beatsaver link
-    else if let Some(caps) = ctx.data().bsr_link_regex.captures(input) {
-        code = Some(caps["bsr"].to_string());
-    }
-    // just the code flat out
-    else if let Some(caps) = ctx.data().hexstring_regex.captures(input.trim()) {
-        code = Some(caps[0].to_string());
-    }
-
-    if let Some(bsr) = code {
-        maps = handle_code(bsr, ctx).await.unwrap();
-    } else {
-        // if none of that applies, just hit the search endpoint
-        maps = handle_search(input.to_string(), ctx).await.unwrap();
-    }
+    let maps: Vec<MapAutocomplete> = match find_bsr(ctx, input) {
+        Some(bsr) => handle_code(bsr, ctx).await.unwrap(),
+        None => handle_search(input.to_string(), ctx).await.unwrap(),
+    };
 
     futures::stream::iter(maps)
         .map(move |map: MapAutocomplete| serenity::AutocompleteChoice::new(map.name, map.id))
