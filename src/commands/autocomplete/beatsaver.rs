@@ -44,7 +44,7 @@ async fn handle_code(bsr: String, ctx: Context<'_>) -> Result<Vec<MapAutocomplet
     let uploader = format!(" [{}]", res.uploader.name);
     let name = format!(
         "{}{}",
-        truncate_string(res.name.clone(), Some(100 - uploader.len()), "...".into()),
+        truncate_string(res.name.clone(), 100 - uploader.len(), "...".into()),
         uploader
     );
 
@@ -69,7 +69,7 @@ async fn handle_search(query: String, ctx: Context<'_>) -> Result<Vec<MapAutocom
             let uploader = format!(" [{}]", res.uploader.name);
             let name = format!(
                 "{}{}",
-                truncate_string(res.name.clone(), Some(100 - uploader.len()), "...".into()),
+                truncate_string(res.name.clone(), 100 - uploader.len(), "...".into()),
                 uploader
             );
 
