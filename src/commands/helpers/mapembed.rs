@@ -2,7 +2,6 @@ use beatsaver_api::models::{
     enums::Characteristic,
     map::{Map, MapDifficulty},
 };
-use log::info;
 use poise::serenity_prelude::{
     Colour, CreateActionRow, CreateButton, CreateEmbed, CreateEmbedFooter, CreateSelectMenu,
     CreateSelectMenuKind, CreateSelectMenuOption,
@@ -28,7 +27,7 @@ fn get_map_diffs_list(map: &Map) -> Vec<CreateSelectMenuOption> {
         )
     }));
 
-    info!("Difficulties: {:?}", map_diffs);
+    // info!("Difficulties: {:?}", map_diffs);
 
     map_diffs
 }
@@ -114,7 +113,7 @@ impl MapEmbed {
             .url(format!("https://beatsaver.com/maps/{}", self.map.id))
             .description(truncate_string(
                 self.map.description.clone(),
-                Some(2048), // !bsr 45001 is 4100 characters
+                2048, // !bsr 45001 is 4100 characters
                 "...".to_string(),
             ))
             .thumbnail(&self.map.versions[0].cover_url)
