@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: '*'
   workflow_call:
+    inputs:
+      upload-artifacts:
+        description: Whether to upload artifacts.
+        required: false
+        default: true
+        type: boolean
     outputs:
       key: 
         description: The Docker image tag.

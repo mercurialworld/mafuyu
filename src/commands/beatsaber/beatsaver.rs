@@ -16,11 +16,11 @@ use poise::{
 #[poise::command(
     slash_command,
     install_context = "Guild|User",
-    interaction_context = "Guild|BotDm|PrivateChannel"
+    interaction_context = "Guild|BotDm|PrivateChannel",
 )]
 pub async fn bsr(
     ctx: Context<'_>,
-    #[description = "The beatmap ID, a link, or a BeatSaver search query."]
+    #[description = "The map ID, a link to a BeatSaver map, or a BeatSaver search query."]
     #[autocomplete = "autocomplete::beatsaver::autocomplete_map"]
     query: String,
 ) -> Result<(), Error> {
