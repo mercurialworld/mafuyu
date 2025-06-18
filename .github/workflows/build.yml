@@ -57,6 +57,7 @@ jobs:
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
+        if: inputs.upload-artifacts
         with:
           name: docker-image
           path: /tmp/image.tar
@@ -82,6 +83,7 @@ jobs:
 
       - name: Upload synth artifact
         uses: actions/upload-artifact@v4
+        if: inputs.upload-artifacts
         with:
           name: aws-cdk-synth
           path: cdk.out
