@@ -1,7 +1,7 @@
 {
   "name": "mafuyu",
-  "version": "0.2.8",
-  "description": "AWS CodeDeploy files for Luca's beloved Rust bot.",
+  "version": "0.2.9",
+  "description": "AWS CodeDeploy files for Pocha's beloved Rust bot.",
   "homepage": "https://github.com/mercurialworld/mafuyu#readme",
   "bugs": {
     "url": "https://github.com/mercurialworld/mafuyu/issues"
