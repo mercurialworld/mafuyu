@@ -39,9 +39,9 @@ fn format_time(duration: i32) -> String {
     let hours = (duration / 60) / 60;
 
     if hours > 0 {
-        format!("{}:{:0>2}:{:0>2}", hours, minutes, seconds)
+        format!("{hours}:{minutes:0>2}:{seconds:0>2}")
     } else {
-        format!("{}:{:0>2}", minutes, seconds)
+        format!("{minutes}:{seconds:0>2}")
     }
 }
 
@@ -163,10 +163,10 @@ impl MapEmbed {
         );
 
         if let Some(scoresaber_stars) = diff.ss_stars {
-            embed = embed.field("ScoreSaber Stars", format!("{:.2}", scoresaber_stars), true);
+            embed = embed.field("ScoreSaber Stars", format!("{scoresaber_stars:.2}"), true);
         }
         if let Some(beatleader_stars) = diff.bl_stars {
-            embed = embed.field("BeatLeader Stars", format!("{:.2}", beatleader_stars), true);
+            embed = embed.field("BeatLeader Stars", format!("{beatleader_stars:.2}"), true);
         }
 
         embed

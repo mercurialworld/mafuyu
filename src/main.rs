@@ -61,8 +61,8 @@ async fn main() {
                             let mut error_description: String = "".to_string();
 
                             error.chain().skip(1).for_each(|cause| {
-                                warn!("because: {:?}", cause);
-                                error_description.push_str(&format!("because: {}\n", cause));
+                                warn!("because: {cause:?}");
+                                error_description.push_str(&format!("because: {cause}\n"));
                             });
 
                             let embed = CreateEmbed::new()
