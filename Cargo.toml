@@ -5,16 +5,16 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-anyhow = "1.0.98"
-beatsaver-api = { git = "https://github.com/mercurialworld/beatsaver-api.git", version = "0.1.4" }
-chrono = { version = "0.4.41", features = ["serde"] }
+anyhow = "1.0.102"
+beatsaver-api = { git = "https://github.com/mercurialworld/beatsaver-api.git", version = "0.2.0" }
+chrono = { version = "0.4.44", features = ["serde"] }
 dotenvy = "0.15.7"
-env_logger = "0.11.8"
-futures = "0.3.31"
-log = "0.4.27"
+env_logger = "0.11.10"
+futures = "0.3.32"
+log = "0.4.29"
 poise = { git = "https://github.com/serenity-rs/poise.git", branch = "current"}
-regex = "1.11.1"
-reqwest = "0.12.20"
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
-tokio = { version = "1.45.1", features = ["full"] }
+regex = "1.12.3"
+reqwest = "0.13.3"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokio = { version = "1.52.2", features = ["full"] }

@@ -127,8 +127,24 @@ impl MapEmbed {
     fn create_map_metadata_embed(&self) -> CreateEmbed {
         let embed = self.create_base_embed();
         embed
-            .field("Mapper(s)", &self.map.metadata.level_author_name, false)
-            .field("Artist(s)", &self.map.metadata.song_author_name, false)
+            .field(
+                "Mapper(s)",
+                self.map
+                    .metadata
+                    .level_author_name
+                    .clone()
+                    .unwrap_or(self.map.uploader.name.clone()),
+                false,
+            )
+            .field(
+                "Artist(s)",
+                self.map
+                    .metadata
+                    .song_author_name
+                    .clone()
+                    .unwrap_or("Unknown".to_owned()),
+                false,
+            )
             .fields([
                 ("BPM", &self.map.metadata.bpm.to_string(), true),
                 ("Length", &format_time(self.map.metadata.duration), true),

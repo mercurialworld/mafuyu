@@ -88,7 +88,7 @@ async fn main() {
                     env!("CARGO_PKG_VERSION")
                 ))));
 
-                let beatsaver_client = BeatSaverClient::new();
+                let beatsaver_client = BeatSaverClient::default();
                 let bsr_link_regex = Regex::new(
                     r"(?:https?://)?(?:www\.)?beatsaver\.com/maps/(?P<bsr>[a-fA-F0-9]+)",
                 )
