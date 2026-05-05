@@ -6,7 +6,7 @@ on:
   workflow_dispatch: 
 
 env:
-  NODE_VERSION: 22
+  NODE_VERSION: 24
   CONTAINER_REGISTRY: ghcr.io
 
 jobs:
@@ -40,7 +40,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Download image artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: docker-image
           path: /tmp
@@ -66,10 +66,10 @@ jobs:
       name: aws-cdk
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
       
@@ -82,7 +82,7 @@ jobs:
           role-to-assume: repo
 
       - name: Download synth artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: aws-cdk-synth
           path: cdk.out
@@ -91,7 +91,7 @@ jobs:
         run: npx cdk deploy --ci --no-lookups --require-approval=never --app=cdk.out --outputs-file=outputs.json
 
       - name: Upload outputs artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: aws-cdk-outputs
           path: outputs.json
@@ -109,10 +109,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Download outputs artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: aws-cdk-outputs
 
