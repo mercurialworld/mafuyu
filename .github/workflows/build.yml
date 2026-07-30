@@ -3,6 +3,7 @@ name: Build images/artifacts
 on:
   push:
     branches: '*'
+    tags-ignore: 'v[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
     branches: '*'
   workflow_call:
