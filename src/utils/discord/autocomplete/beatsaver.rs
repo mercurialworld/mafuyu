@@ -1,7 +1,7 @@
 use futures::{Stream, StreamExt};
 use poise::serenity_prelude::{self as serenity};
 
-use crate::{commands::helpers::truncate::truncate_string, Context, Error};
+use crate::{utils::truncate::truncate_string, Context, Error};
 
 struct MapAutocomplete {
     name: String,

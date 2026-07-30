@@ -1,10 +1,7 @@
-use crate::{
-    commands::{
-        autocomplete::beatsaver::{autocomplete_map, find_bsr},
-        helpers::mapembed::MapEmbed,
-    },
-    Context, Error,
-};
+use crate::ui::mapembed::MapEmbed;
+use crate::utils::discord::autocomplete::beatsaver::autocomplete_map;
+use crate::utils::discord::autocomplete::beatsaver::find_bsr;
+use crate::{Context, Error};
 use beatsaver_api::models::map::Map;
 use log::info;
 use poise::{

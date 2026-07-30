@@ -17,7 +17,7 @@ use crate::{Context, Error};
 pub async fn status(ctx: Context<'_>) -> Result<(), Error> {
     let status_embed = CreateEmbed::new()
         .title(format!("Mafuyu v{}", env!("CARGO_PKG_VERSION")))
-        .description("A general purpose Discord application.")
+        .description("A (not-so) general purpose Discord application.")
         .field("Source", "https://github.com/mercurialworld/mafuyu", false)
         .footer(CreateEmbedFooter::new(
             "Made by @mercurial_world on Discord",

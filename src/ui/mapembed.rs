@@ -7,7 +7,7 @@ use poise::serenity_prelude::{
     CreateSelectMenuKind, CreateSelectMenuOption,
 };
 
-use super::truncate::truncate_string;
+use crate::utils::truncate::truncate_string;
 
 pub struct MapEmbed {
     pub map: Map,
