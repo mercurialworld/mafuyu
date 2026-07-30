@@ -14,7 +14,7 @@ COPY . .
 RUN cargo build --release
 
 # We do not need the Rust toolchain to run the binary!
-FROM debian:bookworm-slim AS runtime
+FROM debian:stable-slim AS runtime
 RUN apt-get update && \
     apt-get install pkg-config libssl-dev ca-certificates -y && \
     rm -rf /var/lib/apt/lists/*
