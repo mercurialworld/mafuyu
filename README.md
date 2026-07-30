@@ -1,6 +1,6 @@
 # Mafuyu
 
-Luca's personal Discord bot.
+Empy's personal Discord bot.
 
 # Running the bot
 
