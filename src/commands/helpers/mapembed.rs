@@ -22,7 +22,7 @@ fn get_map_diffs_list(map: &Map) -> Vec<CreateSelectMenuOption> {
 
     map_diffs.extend(map.versions[0].diffs.iter().enumerate().map(|(idx, diff)| {
         CreateSelectMenuOption::new(
-            format!("{} {}", diff.characteristic.name(), diff.difficulty),
+            format!("{} {}", diff.characteristic, diff.difficulty),
             (idx + 1).to_string(),
         )
     }));
@@ -174,7 +174,7 @@ impl MapEmbed {
 
         embed = embed.field(
             "Characteristic/Difficulty",
-            format!("{} {}", diff.characteristic.name(), diff.difficulty),
+            format!("{} {}", diff.characteristic, diff.difficulty),
             false,
         );
 
