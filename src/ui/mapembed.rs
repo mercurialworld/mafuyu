@@ -93,10 +93,10 @@ impl MapEmbed {
                 .label("ArcViewer")
                 .emoji('⏯'),
                 CreateButton::new_link(format!(
-                    "https://watch.scoresaber.com/?map={}",
+                    "https://chroviewer.com/?map={}",
                     &self.map.id
                 ))
-                .label("ScoreSaber Preview")
+                .label("ChroViewer")
                 .emoji('⏯'),
             ]),
         ]
