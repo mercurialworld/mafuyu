@@ -51,7 +51,7 @@ pub async fn bsr(
     {
         info!(
             "Difficulty request for !bsr {} requested by {}",
-            &code,
+            code,
             ctx.author().name
         );
 

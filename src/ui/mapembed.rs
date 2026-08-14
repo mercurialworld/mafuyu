@@ -88,16 +88,13 @@ impl MapEmbed {
                     .emoji('⬇'),
                 CreateButton::new_link(format!(
                     "https://allpoland.github.io/ArcViewer/?id={}",
-                    &self.map.id
+                    self.map.id
                 ))
                 .label("ArcViewer")
                 .emoji('⏯'),
-                CreateButton::new_link(format!(
-                    "https://chroviewer.com/?map={}",
-                    &self.map.id
-                ))
-                .label("ChroViewer")
-                .emoji('⏯'),
+                CreateButton::new_link(format!("https://chroviewer.com/?map={}", self.map.id))
+                    .label("ChroViewer")
+                    .emoji('⏯'),
             ]),
         ]
     }
@@ -123,7 +120,7 @@ impl MapEmbed {
                 "...".to_string(),
             ))
             .thumbnail(&self.map.versions[0].cover_url)
-            .footer(CreateEmbedFooter::new(format!("!bsr {}", &self.map.id)))
+            .footer(CreateEmbedFooter::new(format!("!bsr {}", self.map.id)))
             .timestamp(self.map.uploaded);
 
         embed

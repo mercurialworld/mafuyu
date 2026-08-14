@@ -28,14 +28,14 @@ impl Mafuyu {
                         match ctx {
                             poise::Context::Application(app_ctx) => info!(
                                 "{} used app command {} with options {:?}",
-                                &author.name,
-                                &app_ctx.interaction.data.name,
-                                &app_ctx.interaction.data.options
+                                author.name,
+                                app_ctx.interaction.data.name,
+                                app_ctx.interaction.data.options
                             ),
                             poise::Context::Prefix(pfx_ctx) => {
                                 info!(
                                     "{} used prefix command {}",
-                                    &author.name, &pfx_ctx.msg.content
+                                    author.name, pfx_ctx.msg.content
                                 )
                             }
                         }
