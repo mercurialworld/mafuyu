@@ -1,7 +1,12 @@
+use axum::{routing::get, Router};
 use dotenvy::dotenv;
 use poise::serenity_prelude::{self as serenity};
 
-use mafuyu::core::bot::Mafuyu;
+use mafuyu::{
+    api::{health, serve},
+    core::bot::Mafuyu,
+};
+use tokio::join;
 
 #[tokio::main]
 async fn main() {
@@ -13,5 +18,7 @@ async fn main() {
 
     let mut mafuyu = Mafuyu::new(&token, intents).await;
 
-    mafuyu.client.start().await.unwrap();
+    let app: Router = Router::new().route("/health", get(health));
+
+    let _ = join!(serve(app, 5000), mafuyu.client.start());
 }

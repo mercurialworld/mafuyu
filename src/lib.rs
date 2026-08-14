@@ -5,6 +5,7 @@ pub mod commands;
 pub mod core;
 pub mod ui;
 pub mod utils;
+pub mod api;
 
 pub struct Data {
     pub beatsaver_client: BeatSaverClient,
