@@ -9,7 +9,7 @@ export class MafuyuStack extends cdk.Stack {
         new CodeDeployApp(this, "CodeDeploy", {
             githubRepo: getRepoFromEnv(),
             codedeployGitHubEnv: "codedeploy",
-            onPremInstanceTag: "dreamcatching"
+            onPremInstanceTag: "mercurial"
         });
     }
 }
